@@ -1,89 +1,15 @@
-use num_complex::Complex64;
-use ndarray::{ArrayView2, ArrayViewMut2};
-use faer::prelude::*;
-use faer_entity::IdentityGroup;
-// use faer::{Mat, Parallelism, Entity};
-use faer::{Entity};
-use std::ops::IndexMut;
-
-pub trait QIndex<T> {
-    fn qindex2(&self, a: usize, b: usize) -> T;
+pub trait Index2<T> {
+    fn index2(&self, a: usize, b: usize) -> T;
 }
 
-pub trait QIndexMut<T> {
-    type Output;
-    fn qindexmut2(&mut self, a: usize, b: usize) -> &mut Self::Output;
-}
-
-// Matrix multiplication intended to be generic wrt matrix libraries.
-// That is, implment traits for each linalg library and then call this
-// single method.
-pub fn matmul_4x4<T, MT, MTM>(mut c: MTM, a: MT, b: MT)
-where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
-      MT: QIndex<T> + MyNrows, MTM: QIndexMut<T, Output = T> + MyNrows {
-    // let nside = 4;
-    // let n = nside - 1;
-    for i in 0..3 {
-        for j in 0..3 {
-            // rely on this being additive id.
-            let mut s = T::my_zero();
-            for k in 0..3 {
-                s += a.qindex2(i, k) * b.qindex2(k, j);
-            }
-            *c.qindexmut2(i, j) = s;
-        }
-    }
-}
-
-pub fn matmul_4x4_checked<T, MT, MTM>(c: MTM, a: MT, b: MT) -> bool
-where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
-      MT: QIndex<T> + MyNrows, MTM: QIndexMut<T, Output = T> + MyNrows {
-    let nside = a.ncols();
-    if nside != 4 || nside != a.ncols() {
-        return false
-    }
-    matmul_4x4(c, a, b);
-    true
-}
-
-pub fn matmul_nxn<T, MT, MTM>(mut c: MTM, a: MT, b: MT)
-where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
-      MT: QIndex<T> + MyNrows, MTM: QIndexMut<T, Output = T> + MyNrows {
-    let nside = a.ncols();
-    let n = nside - 1;
-    for i in 0..n {
-        for j in 0..n {
-            // rely on this being additive id.
-            let mut s = T::my_zero();
-            for k in 0..n {
-                s += a.qindex2(i, k) * b.qindex2(k, j);
-            }
-            *c.qindexmut2(i, j) = s;
-        }
-    }
+pub trait Assign<T> {
+    fn assign(&mut self, a: usize, b: usize, val: T);
 }
 
 /// Return the additive identity element
 pub trait MyZero {
     type Output;
     fn my_zero() -> Self::Output;
-}
-
-// "literal" means that the loop limits are literal integers. This should
-// give the same results as `let nside = 4`.
-pub fn matmul_4x4_literal<T, MT, MTM>(mut c: MTM, a: MT, b: MT)
-where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
-      MT: QIndex<T>, MTM: QIndexMut<T, Output = T> {
-    for i in 0..3 {
-        for j in 0..3 {
-            // rely on this being additive id.
-            let mut s = T::my_zero();
-            for k in 0..3 {
-                s += a.qindex2(i, k) * b.qindex2(k, j);
-            }
-            *c.qindexmut2(i, j) = s;
-        }
-    }
 }
 
 impl MyZero for f64 {
@@ -94,144 +20,119 @@ impl MyZero for f64 {
     }
 }
 
-impl MyZero for Complex64 {
-    type Output = Complex64;
-    #[inline(always)]
-    fn my_zero() -> Complex64 {
-        Complex64::new(0.0, 0.0)
-    }
-}
-
-impl MyZero for c64 {
-    type Output = c64;
-    #[inline(always)]
-    fn my_zero() -> c64 {
-        c64::new(0.0, 0.0)
-    }
-}
-
 pub trait MyNrows {
     fn nrows(&self) -> usize;
     fn ncols(&self) -> usize;
 }
 
-impl<A> MyNrows for ArrayView2<'_, A> {
-    #[inline(always)]
-    fn nrows(&self) -> usize {
-        self.nrows()
-    }
-    #[inline(always)]
-    fn ncols(&self) -> usize {
-        self.ncols()
-    }
-}
-
-impl<A> MyNrows for ArrayViewMut2<'_, A> {
-    #[inline(always)]
-    fn nrows(&self) -> usize {
-        self.nrows()
-    }
-    #[inline(always)]
-    fn ncols(&self) -> usize {
-        self.ncols()
-    }
-}
-
-impl<E: Entity > MyNrows for MatRef<'_, E> {
-    #[inline(always)]
-    fn nrows(&self) -> usize {
-        self.nrows()
-    }
-    #[inline(always)]
-    fn ncols(&self) -> usize {
-        self.ncols()
-    }
-}
-
-impl<E: Entity > MyNrows for MatMut<'_, E> {
-    #[inline(always)]
-    fn nrows(&self) -> usize {
-        self.nrows()
-    }
-    #[inline(always)]
-    fn ncols(&self) -> usize {
-        self.ncols()
-    }
-}
-
-//
-// ndarray implementations
-//
-
-impl<T: Copy> QIndex<T> for ArrayView2<'_, T> {
-    #[inline(always)]
-    fn qindex2(&self, a: usize, b: usize) -> T {
-        self[[a, b]]
-    }
-}
-
-// For indexing in lvalues
-impl<T: Copy> QIndexMut<T> for ArrayViewMut2<'_, T> {
-    type Output = T;
-    #[inline(always)]
-    fn qindexmut2(&mut self, a: usize, b: usize) -> &mut T {
-        self.index_mut([a,b])
-    }
-}
-
-// Use indexing methods from ndarray library rather than those defined above.
-pub fn matmul_4x4_array_view<T>(mut c: ArrayViewMut2<T>, a: ArrayView2<T>, b: ArrayView2<T>)
-where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::AddAssign + Default + Copy
-{
-    for i in 0..3 {
-        for j in 0..3 {
-            // rely on this being additive id.
-            let mut s = T::default();
-            for k in 0..3 {
-                s += a[[i, k]] * b[[k, j]];
+/// Row major just means that the row index varies fastest.
+pub fn matmul_2x2_row_major<T, MT1, MT2, MTM>(mut c: MTM, a: MT1, b: MT2)
+where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
+      MT1: Index2<T> + MyNrows, MT2: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
+    let (r0, r1) = (0, 2);
+    for j in r0..r1 {
+        for i in r0..r1 {
+            let mut s = T::my_zero();
+            for k in r0..r1 {
+                s += a.index2(i, k) * b.index2(k, j);
             }
-            c[[i, j]] = s;
+            c.assign(i, j, s);
         }
     }
 }
 
-//
-// faer implementations
-//
-
-impl<T: Copy + Entity<Group = IdentityGroup, Unit=T>> QIndex<T> for MatRef<'_, T> {
-    #[inline(always)]
-    fn qindex2(&self, a: usize, b: usize) -> T {
-        self[(a, b)]
-    }
+// We expect that the compiler will unroll the explicit loops so that this is not necessary.
+// Benchmarking appears to verify this.
+pub fn matmul_2x2_row_major_unrolled<T, MT1, MT2, MTM>(mut c: MTM, a: MT1, b: MT2)
+where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy + std::ops::Add<Output = T>,
+      MT1: Index2<T> + MyNrows, MT2: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
+    c.assign(0, 0, a.index2(0, 0) * b.index2(0, 0) + a.index2(0, 1) * b.index2(1, 0));
+    c.assign(0, 1, a.index2(0, 0) * b.index2(0, 1) + a.index2(0, 1) * b.index2(1, 1));
+    c.assign(1, 0, a.index2(1, 0) * b.index2(0, 0) + a.index2(1, 1) * b.index2(1, 0));
+    c.assign(1, 1, a.index2(1, 0) * b.index2(0, 1) + a.index2(1, 1) * b.index2(1, 1));
 }
 
-// For indexing in lvalues
-impl <T: Copy + Entity<Group = IdentityGroup, Unit=T>> QIndexMut<T> for MatMut<'_, T> {
-    type Output = T;
-    #[inline(always)]
-    fn qindexmut2(&mut self, a: usize, b: usize) -> &mut T {
-        self.index_mut((a, b))
-    }
-}
-
-// Use indexing methods from faer library rather than those defined above.
-// In principle, the generic routine use zero-cost abstractions to obtain
-// the same performance.
-// This method with explicit-ish indexing may be used to verify that there are no
-// inefficiencies in the generic version.
-pub fn matmul_4x4_faer<T>(mut c: MatMut<T>, a: MatRef<T>, b: MatRef<T>)
-where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T>  + Copy
-    + Entity<Group = IdentityGroup, Unit=T>
-{
-    for i in 0..3 {
-        for j in 0..3 {
-            // rely on this being additive id.
+// Matrix multiplication intended to be generic wrt matrix libraries.
+// That is, implement traits for each linear algebra library and then call this
+// single method.
+// The main features are:
+// 1. Naive explicit loops
+// 2. Hard-coded limits on loops, so the compiler has an opportunity to perform optimizations
+//    such as loop unrolling.
+/// Row major just means that the row index varies fastest.
+pub fn matmul_4x4_row_major<T, MT1, MT2, MTM>(mut c: MTM, a: MT1, b: MT2)
+where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
+      MT1: Index2<T> + MyNrows, MT2: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
+    let (r0, r1) = (0, 4);
+    for j in r0..r1 {
+        for i in r0..r1 {
             let mut s = T::my_zero();
-            for k in 0..3 {
-                s += a[(i, k)] * b[(k, j)];
+            for k in r0..r1 {
+                s += a.index2(i, k) * b.index2(k, j);
             }
-            c[(i, j)] = s;
+            c.assign(i, j, s);
+        }
+    }
+}
+
+/// Column major just means that the column index varies fastest.
+pub fn matmul_4x4_col_major<T, MT1, MT2, MTM>(mut c: MTM, a: MT1, b: MT2)
+where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
+      MT1: Index2<T> + MyNrows, MT2: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
+    let (r0, r1) = (0, 4);
+    for i in r0..r1 {
+        for j in r0..r1 {
+            let mut s = T::my_zero();
+            for k in r0..r1 {
+                s += a.index2(i, k) * b.index2(k, j);
+            }
+            c.assign(i, j, s);
+        }
+    }
+}
+
+// We really want to return a `Result` here. But this is ok for a first test.
+pub fn matmul_4x4_checked_row_major<T, MT, MTM>(c: MTM, a: MT, b: MT) -> bool
+where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
+      MT: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
+    let nside = a.ncols();
+    if nside != 4 || nside != a.ncols() {
+        return false
+    }
+    matmul_4x4_row_major(c, a, b);
+    true
+}
+
+// The difference from matmul_4x4 is that the size of the matrix is retrieved
+// at run time rather than compile time.
+pub fn matmul_nxn_row_major<T, MT, MTM>(mut c: MTM, a: MT, b: MT)
+where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
+      MT: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
+    let nside = a.ncols();
+    for j in 0..nside {
+        for i in 0..nside {
+            let mut s = T::my_zero();
+            for k in 0..nside {
+                s += a.index2(i, k) * b.index2(k, j);
+            }
+            c.assign(i, j, s);
+        }
+    }
+}
+
+// The difference from matmul_4x4 is that the size of the matrix is retrieved
+// at run time rather than compile time.
+pub fn matmul_nxn_col_major<T, MT, MTM>(mut c: MTM, a: MT, b: MT)
+where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
+      MT: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
+    let nside = a.ncols();
+    for i in 0..nside {
+        for j in 0..nside {
+            let mut s = T::my_zero();
+            for k in 0..nside {
+                s += a.index2(i, k) * b.index2(k, j);
+            }
+            c.assign(i, j, s);
         }
     }
 }

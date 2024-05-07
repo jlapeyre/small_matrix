@@ -1,1 +1,11 @@
-/target
+/target/CACHEDIR.TAG
+/target/debug
+/target/release
+/target/.rustc_info.json
+/target/tmp
+/target/criterion/*/base/
+/target/criterion/*/report/
+/target/criterion/report/
+/target/
+
+
