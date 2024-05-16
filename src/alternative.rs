@@ -15,8 +15,8 @@ pub fn matmul_4x4_array_view_row_major<T>(mut c: ArrayViewMut2<T>, a: ArrayView2
 where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::AddAssign + Default + Copy
 {
     let (r0, r1) = (0, 4);
-    for j in r0..r1 {
-        for i in r0..r1 {
+    for i in r0..r1 {
+        for j in r0..r1 {
             // rely on this being additive id.
             let mut s = T::default();
             for k in r0..r1 {
@@ -31,8 +31,8 @@ pub fn matmul_4x4_array_view_col_major<T>(mut c: ArrayViewMut2<T>, a: ArrayView2
 where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::AddAssign + Default + Copy
 {
     let (r0, r1) = (0, 4);
-    for i in r0..r1 {
-        for j in r0..r1 {
+    for j in r0..r1 {
+        for i in r0..r1 {
             // rely on this being additive id.
             let mut s = T::default();
             for k in r0..r1 {
@@ -63,8 +63,8 @@ pub fn matmul_nxn_array_view_row_major<T>(mut c: ArrayViewMut2<T>, a: ArrayView2
 where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::AddAssign + Default + Copy
 {
     let n = a.ncols();
-    for j in 0..n {
-        for i in 0..n {
+    for i in 0..n {
+        for j in 0..n {
             // rely on this being additive id.
             let mut s = T::default();
             for k in 0..n {
@@ -79,8 +79,8 @@ pub fn matmul_nxn_array_view_col_major<T>(mut c: ArrayViewMut2<T>, a: ArrayView2
 where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::AddAssign + Default + Copy
 {
     let n = a.ncols();
-    for i in 0..n {
-        for j in 0..n {
+    for j in 0..n {
+        for i in 0..n {
             // rely on this being additive id.
             let mut s = T::default();
             for k in 0..n {
@@ -101,8 +101,8 @@ where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::Add
     + Entity<Group = IdentityGroup, Unit=T>
 {
     let (r0, r1) = (0, 4);
-    for j in r0..r1 {
-        for i in r0..r1 {
+    for i in r0..r1 {
+        for j in r0..r1 {
             // rely on this being additive id.
             let mut s = T::my_zero();
             for k in r0..r1 {
@@ -123,8 +123,8 @@ where T:  std::ops::Add<Output = T>  + std::ops::Mul<Output = T> + std::ops::Add
     + Entity<Group = IdentityGroup, Unit=T>
 {
     let (r0, r1) = (0, 4);
-    for i in r0..r1 {
-        for j in r0..r1 {
+    for j in r0..r1 {
+        for i in r0..r1 {
             // rely on this being additive id.
             let mut s = T::my_zero();
             for k in r0..r1 {

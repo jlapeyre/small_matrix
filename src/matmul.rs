@@ -30,8 +30,8 @@ pub fn matmul_2x2_row_major<T, MT1, MT2, MTM>(mut c: MTM, a: MT1, b: MT2)
 where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
       MT1: Index2<T> + MyNrows, MT2: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
     let (r0, r1) = (0, 2);
-    for j in r0..r1 {
-        for i in r0..r1 {
+    for i in r0..r1 {
+        for j in r0..r1 {
             let mut s = T::my_zero();
             for k in r0..r1 {
                 s += a.index2(i, k) * b.index2(k, j);
@@ -64,8 +64,8 @@ pub fn matmul_4x4_row_major<T, MT1, MT2, MTM>(mut c: MTM, a: MT1, b: MT2)
 where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
       MT1: Index2<T> + MyNrows, MT2: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
     let (r0, r1) = (0, 4);
-    for j in r0..r1 {
-        for i in r0..r1 {
+    for i in r0..r1 {
+        for j in r0..r1 {
             let mut s = T::my_zero();
             for k in r0..r1 {
                 s += a.index2(i, k) * b.index2(k, j);
@@ -80,8 +80,8 @@ pub fn matmul_4x4_col_major<T, MT1, MT2, MTM>(mut c: MTM, a: MT1, b: MT2)
 where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
       MT1: Index2<T> + MyNrows, MT2: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
     let (r0, r1) = (0, 4);
-    for i in r0..r1 {
-        for j in r0..r1 {
+    for j in r0..r1 {
+        for i in r0..r1 {
             let mut s = T::my_zero();
             for k in r0..r1 {
                 s += a.index2(i, k) * b.index2(k, j);
@@ -109,8 +109,8 @@ pub fn matmul_nxn_row_major<T, MT, MTM>(mut c: MTM, a: MT, b: MT)
 where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
       MT: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
     let nside = a.ncols();
-    for j in 0..nside {
-        for i in 0..nside {
+    for i in 0..nside {
+        for j in 0..nside {
             let mut s = T::my_zero();
             for k in 0..nside {
                 s += a.index2(i, k) * b.index2(k, j);
@@ -126,8 +126,8 @@ pub fn matmul_nxn_col_major<T, MT, MTM>(mut c: MTM, a: MT, b: MT)
 where T: std::ops::Mul<Output = T> + std::ops::AddAssign + MyZero<Output = T> + Copy,
       MT: Index2<T> + MyNrows, MTM: MyNrows + Assign<T> {
     let nside = a.ncols();
-    for i in 0..nside {
-        for j in 0..nside {
+    for j in 0..nside {
+        for i in 0..nside {
             let mut s = T::my_zero();
             for k in 0..nside {
                 s += a.index2(i, k) * b.index2(k, j);

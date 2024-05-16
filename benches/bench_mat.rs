@@ -265,9 +265,9 @@ fn faer_real_mat_row(crit: &mut Criterion) {
 // );
 
 criterion_group!(benches,
-                 rust_array_2x2_complex_row,
-                 ndarray_2x2_complex_row,
-                 ndarray_2x2_complex_row_unrolled,
+                 // rust_array_2x2_complex_row,
+                 // ndarray_2x2_complex_row,
+                 // ndarray_2x2_complex_row_unrolled,
                  mixed_array_complex_col,
                  rust_array_complex_col,
                  rust_array_complex_row,
